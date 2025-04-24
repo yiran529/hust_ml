@@ -1,0 +1,1 @@
+python ./analysis.py --batch-size 64 --model-path E:\hust_ml\results\025-traning\checkpoints\model.pt --data-path E:\hust_ml\data\images 

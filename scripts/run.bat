@@ -1,0 +1,1 @@
+python ./train.py --num-epoch 80 --batch-size 64 --split-rate 0.9
