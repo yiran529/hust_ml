@@ -26,6 +26,8 @@ FashionMNIST数据集，如图1所示，是由Zalando提供的公开图像数据
 
 本项目的挑战在于图像中存在的**类别间相似性**（如T-shirt与Shirt，运动鞋和短靴）、**像素级信息的表达能力有限**，以及如何设计和优化模型以提升分类准确率。因此，我们不仅要选择合适的模型结构（如MLP，CNN或者ResNet），还需考虑数据增强、训练策略、损失函数、优化方法等多方面因素。
 
+<div style="page-break-after: always;"></div>
+
 ## 二、数据分析及处理
 ### 数据分析
 
@@ -95,6 +97,8 @@ transform = transforms.Compose([
 可以考虑使用旋转，改变图像亮度等操作对图像进行进一步处理。  
 但在实验后发现，太多过于复杂的数据处理可能未必带来模型性能的增益，甚至可能会导致模型性能轻微的下降。
 
+<div style="page-break-after: always;"></div>
+
 ## 三、模型构建
 
 在深度学习中，模型架构的选择对最终性能具有决定性影响。本项目采用**渐进式**的建模策略，首先通过简单的**多层感知机**验证基础流程，随后引入**深度残差网络**以充分捕捉图像的空间特征，实现分类性能的显著提升。
@@ -108,6 +112,11 @@ transform = transforms.Compose([
 #### 2. ResNet18特征学习
 为了尽可能提升分类准确率，最终选择了ResNet18这一经典的深度卷积网络。其创新性的残差连接设计通过跨层恒等映射，有效解决了深层网络的梯度衰减问题。
 本项目的实现参考了pytorch的专业的高质量实现，同时针对FashionMNIST数据集的28×28灰度图像特点，对标准ResNet18进行了适配性修改。以下从核心组件、层级结构和数据流三个维度进行详细说明：
+
+<div align="center">
+  <img src="./assets/resnet.png" alt="图片描述" width="50%">
+</div>
+<center style="font-size: 10px;">图5:resnet示意图</center> 
 
 **1. 核心组件设计**   
    (1) 初始卷积块
@@ -196,6 +205,8 @@ out = self.fc(out)                     # [B,num_classes]
 
 通过对比可以发现，深度残差网络的卷积结构的局部感知特性显著提升特征提取能力，其残差设计也有助于提升模型性能。
 
+<div style="page-break-after: always;"></div>
+
 ## 四、训练过程
 本项目采用PyTorch框架实现模型训练。整个训练流程包括**数据预处理、模型构建、训练与验证、测试评估**四个步骤，并通过**日志**与**TensorBoard** 记录训练过程中的关键指标。具体流程如下：
 
@@ -205,28 +216,29 @@ out = self.fc(out)                     # [B,num_classes]
 
 3. 训练完成后，在测试集上评估模型最终效果，并将模型权重与训练配置保存至指定目录，便于后续复现与部署。最终训练得到的模型在测试集上取得了 94.96% 的准确率，验证了训练流程的有效性与模型的良好性能。
 
+<div style="page-break-after: always;"></div>
 
 ## 五、实验结果与分析
 ### 训练过程分析
 ![accuracy曲线](./assets/loss.png)
-<center style="font-size: 10px;">图5:loss曲线</center> 
-从图5的loss曲线可以看出，对于FashionMNIST数据集，ResNet18和ResNet34在相同步数下loss几乎是相同的；如果仔细分辨，则是ResNet34凭借其较大的深度，在loss上表现略优于ResNet18。最终，在大概50000步后，二者都收敛于十分接近于0的值。  
+<center style="font-size: 10px;">图6:loss曲线</center> 
+从图6的loss曲线可以看出，对于FashionMNIST数据集，ResNet18和ResNet34在相同步数下loss几乎是相同的；如果仔细分辨，则是ResNet34凭借其较大的深度，在loss上表现略优于ResNet18。最终，在大概50000步后，二者都收敛于十分接近于0的值。  
 
 ![accuracy曲线](./assets/accuracy.png)
-<center style="font-size: 10px;">图6:accuracy曲线</center> 
+<center style="font-size: 10px;">图7:accuracy曲线</center> 
 &nbsp
 *注：由于MLP仅用于测试training pipeline的正确性，故没有等待其完全收敛  
 &nbsp    
 
-从图6的accuracy曲线可以看出，在训练过程中，ResNet34在验证集上的准确率比ResNet18略高，甚至有某几次超过95%，这表明ResNet34的拟合能力高于ResNet18。但是，由于ResNet在该数据集上的性能已经接近饱和，而且可能也因为对于该测试集而言ResNet34参数量过大，导致最终在测试集上ResNet18(94.97%)表现略好于ResNet34(94.87%)。  
+从图7的accuracy曲线可以看出，在训练过程中，ResNet34在验证集上的准确率比ResNet18略高，甚至有某几次超过95%，这表明ResNet34的拟合能力高于ResNet18。但是，由于ResNet在该数据集上的性能已经接近饱和，而且可能也因为对于该测试集而言ResNet34参数量过大，导致最终在测试集上ResNet18(94.97%)表现略好于ResNet34(94.87%)。  
 另外，也可以看出，ResNet的拟合能力远强于MLP。
 
 ### 错误预测结果分析
 以下分析以实验中表现最好的ResNet18为例。
 ![](.\\assets\\error_breakdown.png)
-<center style="font-size: 10px;">图7:每个真实标签错误预测情况分解。以第一列为例，它表示对于真实标签为0的图片，被错误预测为其它类别的情况；如，它如果被预测错误，则大概率被预测为6号标签，也可能被预测为2、3、8号标签。</center>   
+<center style="font-size: 10px;">图8:每个真实标签错误预测情况分解。以第一列为例，它表示对于真实标签为0的图片，被错误预测为其它类别的情况；如，它如果被预测错误，则大概率被预测为6号标签，也可能被预测为2、3、8号标签。</center>   
 
-由图7可以直观看出，类别6（衬衫）被错误预测为其它类别的概率最高，而其它类别也最容易被错误预测为类别6。其中，类别0（T恤），2（套头衫），3（裙子），4（外套）都有较大概率被错误预测为类别6，这可能是因为这些衣服本身的确在外形上比较相似，在仅有一张黑白图片为判断依据的前提下，可能人类也难以准确判断。
+由图8可以直观看出，类别6（衬衫）被错误预测为其它类别的概率最高，而其它类别也最容易被错误预测为类别6。其中，类别0（T恤），2（套头衫），3（裙子），4（外套）都有较大概率被错误预测为类别6，这可能是因为这些衣服本身的确在外形上比较相似，在仅有一张黑白图片为判断依据的前提下，可能人类也难以准确判断。
 
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
   <img src=".\\assets\\Tshirt1.png" alt="Image 1" style="width: 100%;">
@@ -234,7 +246,7 @@ out = self.fc(out)                     # [B,num_classes]
   <img src=".\\assets\\Tshirt3.png"  alt="Image 3" style="width: 100%;">
   <img src=".\\assets\\Tshirt4.png"  alt="Image 4" style="width: 100%;">
 </div>
-<center style="font-size: 10px;">图8:被错误预测为衬衫的Tshirt</center>
+<center style="font-size: 10px;">图9:被错误预测为衬衫的Tshirt</center>
 
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
   <img src=".\\assets\\shirt1.png" alt="Image 1" style="width: 100%;">
@@ -242,10 +254,41 @@ out = self.fc(out)                     # [B,num_classes]
   <img src=".\\assets\\shirt3.png"  alt="Image 3" style="width: 100%;">
   <img src=".\\assets\\shirt4.png"  alt="Image 4" style="width: 100%;">
 </div>
-<center style="font-size: 10px;">图8:被错误预测为Tshirt的衬衫</center>
+<center style="font-size: 10px;">图10:被错误预测为Tshirt的衬衫</center>
 
-由图7图8可以看出，Tshirt和shirt的确非常相似，这可能会迷惑模型，使其容易在这些类别的预测上出错。相比之下，类别1（裤子）和类别8（包）由于在外形上于其它类别区别较大，因此预测的正确率就相对较高。
+由图9图10可以看出，Tshirt和shirt的确非常相似，这可能会迷惑模型，使其容易在这些类别的预测上出错。相比之下，类别1（裤子）和类别8（包）由于在外形上于其它类别区别较大，因此预测的正确率就相对较高。
 
-## 六、评价
-官网给出的各个模型的最好表现
+<div style="page-break-after: always;"></div>
 
+## 六、可能的改进
+从FashionMNIST官网收集的基准测试结果可以看出，当前模型的性能仍有提升空间。以下表格展示了部分表现优异的模型架构及其测试准确率：
+| Classifier | Preprocessing | test accuracy | 
+| --- | --- | --- | 
+| WRN40-4 8.9M params | standard preprocessing (mean/std subtraction/division) and augmentation (random crops/horizontal flips) | 0.967 | 
+| DenseNet-BC 768K params | standard preprocessing (mean/std subtraction/division) and augmentation (random crops/horizontal flips) | 0.954 | 
+| Dual path network with wide resnet 28-10 | standard preprocessing (mean/std subtraction/division) and augmentation (random crops/horizontal flips) | 0.957 | 
+| WRN-28-10 | standard preprocessing (mean/std subtraction/division) and augmentation (random crops/horizontal flips) | 0.959 | 
+| WRN-28-10 + Random Erasing | standard preprocessing (mean/std subtraction/division) and augmentation (random crops/horizontal flips) | 0.963 | 
+  <center style="font-size: 10px;">*选自FashionMNIST官网搜集到的benchmarks（基准测试）结果，仅展示准确率优于本项目结果的部分*</center>
+
+从中可以看出，对FashionMNIST分类性能最好的模型能将分类准确率提升到96.7%，即本项目的模型还有大于1.7%的提升空间。如果需要进一步压榨分类性能，或许可以从以下几个方面进行考虑：
+* 根据数据集的特点进行改进对模型结构进行改进，如使用WRN或Dual path network，特别是WRN系列模型通过增加网络宽度而非深度来提升性能，这种设计在FashionMNIST这类相对简单的数据集上可能更具优势
+* 当下在视觉任务中表现出色的Vision Transformer（ViT）架构也值得尝试，虽然其在小规模数据集上的表现仍需验证。
+* 在训练策略方面，可以进一步优化超参数设置。包括调整学习率调度策略（如使用warmup策略）、优化正则化方法（如调整dropout率或权重衰减系数）、以及尝试更复杂的数据增强组合。这些更精细的调整往往能在不改变模型架构的情况下带来可观的性能提升。
+
+<div style="page-break-after: always;"></div>
+
+## 七、结论
+本项目针对FashionMNIST数据集的图像分类问题，采用了一系列深度学习模型进行研究。从简单的多层感知机（MLP）到复杂的残差网络（ResNet），逐步探索了不同模型结构对分类性能的影响。最终，通过ResNet18模型，在测试集上取得了94.97%的准确率，验证了深度卷积网络在图像分类任务中的强大能力。
+
+### 项目成果总结
+1. **问题定义与数据集分析**：对数据集进行了详细的分析。通过PCA和t-SNE可视化，观察到不同类别在特征空间中的分布情况，为后续模型选择提供了依据
+2. **模型构建与性能对比**：首先使用MLP模型验证了基础流程，随后引入ResNet18模型，通过调整网络结构和训练策略，显著提升了分类准确率
+3. **训练过程与结果分析**：在PyTorch框架下，实现了模型的训练与验证，并通过TensorBoard记录了训练过程中的关键指标。通过对训练过程的分析，发现ResNet18在验证集上的准确率略低于ResNet34，但在测试集上表现略好，这可能与模型的参数量和过拟合有关。
+4. **错误预测结果分析**：对 ResNet18 模型的错误预测结果进行了详细分析，发现某些类别（如 T-shirt 和 Shirt）由于外形相似，容易被错误分类。这一现象提示我们在后续工作中可以进一步优化模型结构或采用数据增强技术来提高分类性能。
+
+### 改进建议
+尽管 ResNet18 已经取得了较高的准确率，但仍有提升空间。根据 FashionMNIST 官网的benchmarks结果，一些先进的模型如 WRN 和 Dual Path Network在该数据集上表现更为出色。因此，未来可以从以下这些相关方向切入。
+
+### 项目意义与展望
+通过本项目，我深刻认识到深度学习在图像分类任务中的巨大潜力，同时也意识到模型选择和优化的重要性。期待在未来的学习研究中，能够结合更多的技术和方法，取得一些有益的成果。
